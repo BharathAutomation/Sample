@@ -1,0 +1,50 @@
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import static io.restassured.RestAssured.*;
+import static org.hamcrest.Matchers.*;
+
+public class APITest {
+
+    public static void main(String[] args) {
+        // Set the base URI
+        RestAssured.baseURI = "https://nimbus-daas-dev.aws.3pc.att.com";
+
+        // JSON body for the POST request
+        String requestBody = "{\n" +
+                "  \"ban\": \"333311113333\",\n" +
+                "  \"customerIssue\": \"no internet\",\n" +
+                "  \"agentATTUID\": \"jp012e\"\n" +
+                "}";
+
+        // Send POST request with headers and Basic Authentication
+        Response response = given()
+                .header("clientApp", "CCMULE")
+                .header("version", "40000")
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Basic Y2NhaTp3dUVjYzRGZkFqeWQ0NEN0")
+                .header("User-Agent", "PostmanRuntime/7.39.0")
+                .header("Accept", "*/*")
+                .header("Cache-Control", "no-cache")
+                .header("Postman-Token", "7141bffb-e513-4731-b83c-67a0cab2752c")
+                .header("Host", "nimbus-daas-dev.aws.3pc.att.com")
+                .header("Accept-Encoding", "gzip, deflate, br")
+                .header("Connection", "keep-alive")
+                .header("Cookie", "JSESSIONID=A3DC0D31723189062242F2B3EB73CC51")
+                .body(requestBody)
+                .when()
+                .post("/ol-api/v2/menu")
+                .then()
+                .statusCode(200) // Assert that the status code is 200
+                .body("olSessionId", notNullValue()) // Verify that olSessionId is not null
+                .body("menu[0].mainMenu[0].itemName", equalTo("Fix")) // Verify the first item in the main menu
+                .extract()
+                .response();
+
+        // Print the response
+        System.out.println("Response: " + response.asString());
+
+        // Additional response body validations
+        response.then().body("menu[0].mainMenu[0].subItems[0].itemName", equalTo("Internet"));
+        response.then().body("menu[0].mainMenu[0].subItems[0].subItems[0].displayTitle", equalTo("Combine Wi-Fi Bands"));
+    }
+}
